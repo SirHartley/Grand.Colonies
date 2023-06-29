@@ -1,0 +1,3 @@
+name,id,planetary,decivRemove,script,desc,icon,order
+Current Building Page,GrandColonies_pageCond,,TRUE,grandcolonies.conditions.PageNumCondition,Displays the current page number.,graphics/conditions/page01.png,3000
+Cramped Infrastructure,GrandColonies_CrampedCondition,,TRUE,grandcolonies.conditions.CrampedCondition,"This colony is host to a massive amount of different structures and industries. There are barely enough workers to keep everything running, and the infrastructure impedes itself due to its own complexity.",graphics/conditions/cramped_colony.png,1

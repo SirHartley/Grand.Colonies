@@ -1,0 +1,34 @@
+2.0.c
+Fixed - Endless duplicated of CrampedCondition spawning
+Fixed - Crash on Mac & Linux
+Fixed - Some rare crashes (Page Full...)
+
+2.0.b
+Fixed - Default - Crash on certain game versions
+
+2.0.a
+Added - Default - Adds a scrollbar to the industry list: No more Pages. (Made by Lukas04 - thank you!)
+Added - Legacy - Pages are now "legacy", there is a setting to toggle the modes
+Added - Legacy - Button to move building from one page to the next
+Added - Legacy - Now displays the scrollbar when remotely accessing the colony so you can see all your stuff
+Fixed - Legacy - Crash when abandoning a colony
+Fixed - Legacy - Crash when opening colony at a governed planet
+Fixed - Legacy - Buildings getting added to second page by default
+
+1.1.a
+Added - Can now have infinite pages (next page appears when 8 buildings are on the last one)
+Added - Images for up to 9 pages and a dummy one from then onwards
+Adjusted - fixed packages and class names
+Adjusted - Condition now changes immediately to display status without needing a refresh
+
+1.0.c
+Added - Indicator showing if page toggle is possible
+Adjusted - now also toggles the page if "Q" is pressed instead of "q"
+
+1.0.b
+Fixed - No longer crashes if a market is abandoned
+Fixed - No longer crashes if a market is founded, changed, then transferred
+
+1.0.a
+
+Added - Initial Release

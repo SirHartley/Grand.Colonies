@@ -1,6 +1,6 @@
 {
 
-  "GrandColonies_LegacyMode": TRUE, #enables legacy mode - showing pages instead of a scrollable panel
+  "GrandColonies_LegacyMode": FALSE, #enables legacy mode - showing pages instead of a scrollable panel
   "GrandColonies_TogglePageButton": "q", #Legacy Mode only - which button is used to toggle between pages
 
   "GrandColonies_AddPenalty": TRUE, #is there a penalty for having too many buildings on a colony?

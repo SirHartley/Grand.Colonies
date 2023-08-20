@@ -46,6 +46,7 @@ public class PageNumCondition extends BaseMarketConditionPlugin {
     @Override
     public void apply(String id) {
         super.apply(id);
+        if (!LEGACY_MODE) return;
 
         Set<String> excl = PageMemory.get(market).getPermaInvisible();
         if (excl == null) {

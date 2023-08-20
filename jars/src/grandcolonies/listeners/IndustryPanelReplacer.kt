@@ -3,6 +3,7 @@ package grandcolonies.listeners
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.econ.MarketAPI
+import com.fs.starfarer.api.impl.campaign.econ.impl.BaseIndustry
 import com.fs.starfarer.api.ui.CustomPanelAPI
 import com.fs.starfarer.api.ui.LabelAPI
 import com.fs.starfarer.api.ui.TooltipMakerAPI
@@ -13,9 +14,7 @@ import com.fs.starfarer.campaign.ui.marketinfo.IndustryListPanel
 import com.fs.state.AppDriver
 import grandcolonies.plugins.ModPlugin
 import org.lazywizard.lazylib.MathUtils
-import java.lang.Exception
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
+import grandcolonies.helper.ReflectionUtils
 
 class IndustryPanelReplacer : EveryFrameScript {
 
@@ -46,6 +45,8 @@ class IndustryPanelReplacer : EveryFrameScript {
 
 
     override fun advance(amount: Float) {
+
+
         frames++
         frames = MathUtils.clamp(frames, 0, 10)
 
@@ -68,7 +69,7 @@ class IndustryPanelReplacer : EveryFrameScript {
 
         //Gets the Campaigns Main UI Panel that all UI is attached to.
         // var core = state.core
-        var core = invokeMethod("getCore", state)
+        var core: UIPanelAPI? = null
 
         var managementPanel: UIPanelAPI? = null
         var industryPanel: UIPanelAPI? = null
@@ -77,66 +78,35 @@ class IndustryPanelReplacer : EveryFrameScript {
         //To find the required classes i used VisualVM, which made it a lot easier to find out where specificly the required panels can be accessed from.
 
         //Gets the main dialog panel.
-        //var dialogCore = state.encounterDialog?.coreUI?.currentTab?.childrenCopy?.find { hasMethodOfName("getOutpostPanelParams", it) }
+        //var dialogCore = state.encounterDialog?.coreUI?.currentTab?.childrenCopy?.find { ReflectionUtils.hasMethodOfName("getOutpostPanelParams", it) }
 
-        var dialog = invokeMethod("getEncounterDialog", state)
+        var dialog = ReflectionUtils.invoke("getEncounterDialog", state)
         if (dialog != null)
         {
-            var dCore = invokeMethod("getCoreUI", dialog)
-            if (dCore != null)
-            {
-                var tab = invokeMethod("getCurrentTab", dCore!!)
-
-                if (tab is UIPanelAPI)
-                {
-                    var dialogCore = tab.getChildrenCopy().find { hasMethodOfName("getOutpostPanelParams", it) }
-
-                    if (dialogCore is UIPanelAPI)
-                    {
-                        //Gets the subpanel that holds the management panel
-                        var dialogSubcore = dialogCore.getChildrenCopy().find { hasMethodOfName("showOverview", it) }
-
-                        //Attempts to get the management panel
-                        if (dialogSubcore is UIPanelAPI)
-                        {
-                            managementPanel = dialogSubcore.getChildrenCopy().find { hasMethodOfName("recreateWithEconUpdate", it) } as UIPanelAPI?
-                            if (managementPanel == null)
-                            {
-                                previousOffset = 0f
-                                return
-                            }
-                            if (managementPanel.getChildrenCopy().find { it == newIndustryPanel } == null)
-                            {
-                                industryPanel = managementPanel.getChildrenCopy().find { it is IndustryListPanel } as IndustryListPanel
-                            }
-                            else
-                            {
-                                previousOffset = 0f
-                            }
-                        }
-                    }
-                }
-            }
+           core = ReflectionUtils.invoke("getCoreUI", dialog) as UIPanelAPI?
         }
 
+        if (core == null) {
+            core = ReflectionUtils.invoke("getCore", state) as UIPanelAPI?
+        }
 
         //There is a copy of the panel that can be found from the command window, to get this one we can do the same as above, but instead going from core directly, instead of the
         //secondary core attached to a dialog.
         if (core != null)
         {
-            var tab = invokeMethod("getCurrentTab", core)
+            var tab = ReflectionUtils.invoke("getCurrentTab", core)
             if (tab is UIPanelAPI)
             {
-                var intelCore = tab.getChildrenCopy()?.find { hasMethodOfName("getOutpostPanelParams", it) }
+                var intelCore = tab.getChildrenCopy()?.find { ReflectionUtils.hasMethodOfName("getOutpostPanelParams", it) }
                 if (intelCore is UIPanelAPI)
                 {
                     //Gets the subpanel that holds the management panel
-                    var intelSubcore = intelCore.getChildrenCopy().find { hasMethodOfName("showOverview", it) }
+                    var intelSubcore = intelCore.getChildrenCopy().find { ReflectionUtils.hasMethodOfName("showOverview", it) }
 
                     //Attempts to get the management panel
                     if (intelSubcore is UIPanelAPI)
                     {
-                        managementPanel = intelSubcore.getChildrenCopy().find { hasMethodOfName("recreateWithEconUpdate", it) } as UIPanelAPI?
+                        managementPanel = intelSubcore.getChildrenCopy().find { ReflectionUtils.hasMethodOfName("recreateWithEconUpdate", it) } as UIPanelAPI?
                         if (managementPanel == null)
                         {
                             previousOffset = 0f
@@ -180,7 +150,7 @@ class IndustryPanelReplacer : EveryFrameScript {
             element = newIndustryPanel!!.createUIElement(830f, 400f, true)
 
             //Gets the current market
-            var market = getPrivateVariable("market", industryPanel) as MarketAPI
+            var market = ReflectionUtils.get("market", industryPanel) as MarketAPI
 
             //Gets all Industry Widgets one by one
             var widgets = getAllWidgets(market, industryPanel)
@@ -236,7 +206,7 @@ class IndustryPanelReplacer : EveryFrameScript {
 
             //Re-Adds the Build Button, which was removed since we had to remove the whole industry panel.
             var lastPanel: UIComponentAPI? = null
-            var build = (industryPanel as UIPanelAPI).getChildrenCopy().find { hasMethodOfName("setEnabled", it) }
+            var build = (industryPanel as UIPanelAPI).getChildrenCopy().find { ReflectionUtils.hasMethodOfName("setEnabled", it) }
             if (build is UIComponentAPI)
             {
 
@@ -252,7 +222,7 @@ class IndustryPanelReplacer : EveryFrameScript {
 
             //Re-Adds both paragraphs to the right of the Build button
             var first = true
-            for (child in (industryPanel as UIPanelAPI).getChildrenCopy().filter { hasMethodOfName("createMaxIndustriesLabel", it) })
+            for (child in (industryPanel as UIPanelAPI).getChildrenCopy().filter { ReflectionUtils.hasMethodOfName("createMaxIndustriesLabel", it) })
             {
                 var paragraphPanel = Global.getSettings().createCustom(child.position.width, child.position.height, null)
                 managementPanel.addComponent(paragraphPanel)
@@ -335,7 +305,7 @@ class IndustryPanelReplacer : EveryFrameScript {
 
         //var widgets: MutableMap<String, UIComponentAPI> = LinkedHashMap()
         var widgets = ArrayList<UIPanelAPI>()
-        invokeMethod("sizeChanged", panel, panel.position.width, panel.position.height)
+        ReflectionUtils.invoke("sizeChanged", panel, panel.position.width, panel.position.height)
         //panel.sizeChanged(panel.position.width, panel.position.height)
 
         var construction = ArrayList(market.constructionQueue.items)
@@ -344,9 +314,9 @@ class IndustryPanelReplacer : EveryFrameScript {
         for (industry in industries)
         {
             industry.isHidden = false
-            invokeMethod("sizeChanged", panel, panel.position.width, panel.position.height)
+            ReflectionUtils.invoke("sizeChanged", panel, panel.position.width, panel.position.height)
             // panel.sizeChanged(panel.position.width, panel.position.height)
-            widgets.addAll(invokeMethod("getWidgets", panel) as List<UIPanelAPI>)
+            widgets.addAll(ReflectionUtils.invoke("getWidgets", panel) as List<UIPanelAPI>)
             // widgets.addAll(panel.widgets)
             industry.isHidden = true
         }
@@ -354,9 +324,9 @@ class IndustryPanelReplacer : EveryFrameScript {
         for (entry in construction)
         {
             market.constructionQueue.items.add(entry)
-            invokeMethod("sizeChanged", panel, panel.position.width, panel.position.height)
+            ReflectionUtils.invoke("sizeChanged", panel, panel.position.width, panel.position.height)
             //panel.sizeChanged(panel.position.width, panel.position.height)
-            widgets.addAll(invokeMethod("getWidgets", panel) as List<UIPanelAPI>)
+            widgets.addAll(ReflectionUtils.invoke("getWidgets", panel) as List<UIPanelAPI>)
             //widgets.addAll(panel.widgets)
             market.constructionQueue.items.remove(entry)
         }
@@ -371,7 +341,7 @@ class IndustryPanelReplacer : EveryFrameScript {
             var contains = false
             for (filt in filteredWidgets)
             {
-                if (getWidgetIndustry(filt, IDS) == widgetName)
+                if (widgetName != "" && getWidgetIndustry(filt, IDS) == widgetName)
                 {
                     contains = true
                 }
@@ -388,89 +358,36 @@ class IndustryPanelReplacer : EveryFrameScript {
 
         return filteredWidgets
     }
-
     fun getWidgetIndustry(widget: UIPanelAPI, industries: List<String>) : String
     {
+        var fakeMarket = Global.getFactory().createMarket("fakeMarket", "Fake Market", 3)
         for (child in widget.getChildrenCopy())
         {
-            if (child is LabelAPI && industries.map { Global.getSettings().getIndustrySpec(it).name }.contains(child.text.trim()) )
-            {
-                return child.text
+            // if (child is LabelAPI && industries.map { Global.getSettings().getIndustrySpec(it).name }.contains(child.text.trim()) )
+            if (child is LabelAPI) {
+                for (industry in industries.map { Global.getSettings().getIndustrySpec(it) })
+                {
+                    var plugin = Global.getSettings().scriptClassLoader.loadClass(industry.pluginClass).newInstance() as BaseIndustry?
+
+                    var name = industry.name
+                    if (plugin != null) {
+                        plugin.init(industry.id, fakeMarket)
+                        name = plugin.currentName
+                    }
+
+                    if (name.equals(child.text.trim()))
+                    {
+                        return child.text
+                    }
+                }
             }
         }
         return ""
     }
 
-    //Used to be able to find specific files without having to reference their obfuscated class name.
-    private fun hasMethodOfName(name: String, instance: Any) : Boolean {
-        val methodClass = Class.forName("java.lang.reflect.Method", false, Class::class.java.classLoader)
-        val getNameMethod = MethodHandles.lookup().findVirtual(methodClass, "getName", MethodType.methodType(String::class.java))
-
-        val instancesOfMethods: Array<out Any> = instance.javaClass.getDeclaredMethods()
-        return instancesOfMethods.any { getNameMethod.invoke(it) == name }
-    }
-
-    //Required to execute obfuscated methods without referencing their obfuscated class name.
-    private fun invokeMethod(methodName: String, instance: Any, vararg arguments: Any?) : Any?
-    {
-        val methodClass = Class.forName("java.lang.reflect.Method", false, Class::class.java.classLoader)
-        val getNameMethod = MethodHandles.lookup().findVirtual(methodClass, "getName", MethodType.methodType(String::class.java))
-        val invokeMethod = MethodHandles.lookup().findVirtual(methodClass, "invoke", MethodType.methodType(Any::class.java, Any::class.java, Array<Any>::class.java))
-
-        var foundMethod: Any? = null
-        for (method in instance::class.java.methods as Array<Any>)
-        {
-            if (getNameMethod.invoke(method) == methodName)
-            {
-                foundMethod = method
-            }
-        }
-
-        return invokeMethod.invoke(foundMethod, instance, arguments)
-    }
-
-    fun setPrivateVariable(fieldName: String, instanceToModify: Any, newValue: Any?)
-    {
-        val fieldClass = Class.forName("java.lang.reflect.Field", false, Class::class.java.classLoader)
-        val setMethod = MethodHandles.lookup().findVirtual(fieldClass, "set", MethodType.methodType(Void.TYPE, Any::class.java, Any::class.java))
-        val getNameMethod = MethodHandles.lookup().findVirtual(fieldClass, "getName", MethodType.methodType(String::class.java))
-        val setAcessMethod = MethodHandles.lookup().findVirtual(fieldClass,"setAccessible", MethodType.methodType(Void.TYPE, Boolean::class.javaPrimitiveType))
-
-        val instancesOfFields: Array<out Any> = instanceToModify.javaClass.getDeclaredFields()
-        for (obj in instancesOfFields)
-        {
-            setAcessMethod.invoke(obj, true)
-            val name = getNameMethod.invoke(obj)
-            if (name.toString() == fieldName)
-            {
-                setMethod.invoke(obj, instanceToModify, newValue)
-            }
-        }
-    }
-
-    //Required to get certain variables.
-    private fun getPrivateVariable(fieldName: String, instanceToGetFrom: Any): Any? {
-        val fieldClass = Class.forName("java.lang.reflect.Field", false, Class::class.java.classLoader)
-        val getMethod = MethodHandles.lookup().findVirtual(fieldClass, "get", MethodType.methodType(Any::class.java, Any::class.java))
-        val getNameMethod = MethodHandles.lookup().findVirtual(fieldClass, "getName", MethodType.methodType(String::class.java))
-        val setAcessMethod = MethodHandles.lookup().findVirtual(fieldClass,"setAccessible", MethodType.methodType(Void.TYPE, Boolean::class.javaPrimitiveType))
-
-        val instancesOfFields: Array<out Any> = instanceToGetFrom.javaClass.getDeclaredFields()
-        for (obj in instancesOfFields)
-        {
-            setAcessMethod.invoke(obj, true)
-            val name = getNameMethod.invoke(obj)
-            if (name.toString() == fieldName)
-            {
-                return getMethod.invoke(obj, instanceToGetFrom)
-            }
-        }
-        return null
-    }
-
     //Extends the UI API by adding the required method to get the child objects of a panel, only when used within this class.
     private fun UIPanelAPI.getChildrenCopy() : List<UIComponentAPI> {
-        return invokeMethod("getChildrenCopy", this) as List<UIComponentAPI>
+        return ReflectionUtils.invoke("getChildrenCopy", this) as List<UIComponentAPI>
     }
 
 

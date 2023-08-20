@@ -2,7 +2,6 @@ package grandcolonies.listeners;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.econ.Industry;
-import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.listeners.BaseIndustryOptionProvider;
 import com.fs.starfarer.api.campaign.listeners.DialogCreatorUI;
 import com.fs.starfarer.api.campaign.listeners.IndustryOptionProvider;
@@ -13,7 +12,6 @@ import grandcolonies.memory.Page;
 import grandcolonies.memory.PageMemory;
 import grandcolonies.plugins.ModPlugin;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,11 +40,11 @@ public class PageMovingOptionProvider extends BaseIndustryOptionProvider {
         List<IndustryOptionProvider.IndustryOptionData> result = new ArrayList<IndustryOptionData>();
 
         PageMemory memory = PageMemory.get(ind.getMarket());
-        Page page = memory.getPage( memory.getNextIndex(memory.currentPage));
+        Page page = memory.getPage(memory.getNextIndex(memory.currentPage));
         boolean isFull = page == null || page.full();
 
         IndustryOptionData opt;
-        if (!isFull){
+        if (!isFull) {
             opt = new IndustryOptionData("Move to next Page", MOVE_ALLOWED, ind, this);
             opt.color = Misc.getBasePlayerColor();
         } else {
@@ -71,7 +69,7 @@ public class PageMovingOptionProvider extends BaseIndustryOptionProvider {
             PageMemory memory = PageMemory.get(opt.ind.getMarket());
             Industry ind = opt.ind;
 
-            if (memory != null){
+            if (memory != null) {
                 int next = memory.getNextIndex(memory.currentPage);
                 memory.getPage(memory.currentPage).remove(ind.getId());
                 memory.getPage(next).add(ind.getId());

@@ -5,8 +5,8 @@ import com.fs.starfarer.api.campaign.BaseCampaignEventListener;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import grandcolonies.conditions.CrampedCondition;
 import grandcolonies.conditions.PageNumCondition;
-import grandcolonies.plugins.ModPlugin;
 import grandcolonies.memory.PageMemory;
+import grandcolonies.plugins.ModPlugin;
 
 import static grandcolonies.plugins.ModPlugin.EXCLUDED_IDS;
 
@@ -18,12 +18,11 @@ public class PlayerOpenedMarketListener extends BaseCampaignEventListener {
     @Override
     public void reportPlayerOpenedMarket(MarketAPI market) {
         if (market == null || !market.isPlayerOwned()) return;
-
         if (market.isPlanetConditionMarketOnly()) removeImpl(market);
         else setupImpl(market);
     }
 
-    private void setupImpl(MarketAPI forMarket){
+    private void setupImpl(MarketAPI forMarket) {
         Global.getSector().getListenerManager().addListener(new ButtonPressListener(forMarket), true);
 
         PageMemory memory = PageMemory.get(forMarket);
@@ -34,7 +33,7 @@ public class PlayerOpenedMarketListener extends BaseCampaignEventListener {
         memory.displayPage(1);
     }
 
-    private void removeImpl(MarketAPI fromMarket){
+    private void removeImpl(MarketAPI fromMarket) {
         ModPlugin.log("Clearing a condition market of Grand.Colony Traces");
         ModPlugin.cleanupImpl(fromMarket);
         Global.getSector().getListenerManager().removeListenerOfClass(ButtonPressListener.class);
@@ -53,7 +52,7 @@ public class PlayerOpenedMarketListener extends BaseCampaignEventListener {
         if (!market.isPlayerOwned()) ModPlugin.cleanupImpl(market);
     }
 
-    private void setDocked(MarketAPI market, boolean docked){
+    private void setDocked(MarketAPI market, boolean docked) {
         if (docked) market.getMemoryWithoutUpdate().set(ModPlugin.DOCKED_KEY, true);
         else market.getMemoryWithoutUpdate().unset(ModPlugin.DOCKED_KEY);
     }

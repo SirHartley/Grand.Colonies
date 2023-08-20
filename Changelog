@@ -1,4 +1,9 @@
+2.0.d
+Fixed - Massive performance improvements, removing any noticeable stutter
+Fixed - Cross-mod issue with Specialized Industries from IndEvo, causing them to become invisible
+
 2.0.c
+Added - Version Checker support
 Fixed - Endless duplicated of CrampedCondition spawning
 Fixed - Crash on Mac & Linux
 Fixed - Some rare crashes (Page Full...)

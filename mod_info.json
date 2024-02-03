@@ -2,9 +2,9 @@
     "id": "GrandColonies",
     "name": "Grand.Colonies",
     "author": "SirHartley & Lukas04",
-    "version": "2.0.c",
+    "version": "2.0.e",
     "description": "Adds infinite additional building slots to a colony.",
-    "gameVersion": "0.96a",
+    "gameVersion": "0.97a",
     "jars":["jars/GrandColonies.jar"],
     "modPlugin":"grandcolonies.plugins.ModPlugin",
 }

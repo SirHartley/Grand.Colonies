@@ -129,12 +129,15 @@ class IndustryPanelReplacer : EveryFrameScript {
         //Check to see if both required panels have been found
         if (industryPanel != null && managementPanel != null)
         {
+            //Gets the current market
+            var market = ReflectionUtils.get("market", industryPanel) as MarketAPI
+            var withScroller = market.industries.size + market.constructionQueue.items.size > 12;
+
             //Gets the previous scroller if there was one before, this makes sure that you dont have to scroll back down each time the panel updates.f
-            if (element != null)
+            if (element != null && withScroller)
             {
                 previousOffset = element!!.externalScroller.yOffset
             }
-
 
             var screenWidth = Global.getSettings().screenWidth
             var screenHeight = Global.getSettings().screenHeight
@@ -147,10 +150,7 @@ class IndustryPanelReplacer : EveryFrameScript {
             newIndustryPanel!!.position.belowLeft(managementPanel.getChildrenCopy().get(0), 20f)
 
             //Create the replacement element that will hold all industry widgets
-            element = newIndustryPanel!!.createUIElement(830f, 400f, true)
-
-            //Gets the current market
-            var market = ReflectionUtils.get("market", industryPanel) as MarketAPI
+            element = newIndustryPanel!!.createUIElement(830f, 400f, withScroller)
 
             //Gets all Industry Widgets one by one
             var widgets = getAllWidgets(market, industryPanel)
@@ -249,22 +249,25 @@ class IndustryPanelReplacer : EveryFrameScript {
 
 
             //Makes the scroller move up/down when a row has been added or removed.
-            if (rowsLastFrame == 0)
-            {
-                element!!.externalScroller.yOffset = previousOffset
+            if (withScroller){
+                if (rowsLastFrame == 0)
+                {
+                    element!!.externalScroller.yOffset = previousOffset
+                }
+                else if (rowsCurrentFrame < rowsLastFrame)
+                {
+                    element!!.externalScroller.yOffset = MathUtils.clamp(previousOffset - widgetSizeLastFrame, 0f, 10000f)
+                }
+                else if (rowsCurrentFrame > rowsLastFrame)
+                {
+                    element!!.externalScroller.yOffset = MathUtils.clamp(previousOffset + widgetSizeLastFrame, 0f, 10000f)
+                }
+                else
+                {
+                    element!!.externalScroller.yOffset = previousOffset
+                }
             }
-            else if (rowsCurrentFrame < rowsLastFrame)
-            {
-                element!!.externalScroller.yOffset = MathUtils.clamp(previousOffset - widgetSizeLastFrame, 0f, 10000f)
-            }
-            else if (rowsCurrentFrame > rowsLastFrame)
-            {
-                element!!.externalScroller.yOffset = MathUtils.clamp(previousOffset + widgetSizeLastFrame, 0f, 10000f)
-            }
-            else
-            {
-                element!!.externalScroller.yOffset = previousOffset
-            }
+
             rowsLastFrame = rowsCurrentFrame
             rowsCurrentFrame = 0
 

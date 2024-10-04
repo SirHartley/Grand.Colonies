@@ -6,6 +6,7 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.econ.BaseMarketConditionPlugin;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
+import lunalib.lunaSettings.LunaSettings;
 
 public class CrampedCondition extends BaseMarketConditionPlugin {
     public static final String CONDITION_ID = "GrandColonies_CrampedCondition";
@@ -22,7 +23,7 @@ public class CrampedCondition extends BaseMarketConditionPlugin {
     public void apply(String id) {
         super.apply(id);
 
-        if(Global.getSettings().getBoolean("GrandColonies_AddPenalty")) applyOverCapPenalty();
+        if(LunaSettings.getBoolean("GrandColonies","GrandColonies_AddPenalty")) applyOverCapPenalty();
     }
 
     @Override
@@ -51,8 +52,8 @@ public class CrampedCondition extends BaseMarketConditionPlugin {
 
     private void applyOverCapPenalty(){
         int amt = getColonyBuildingAmt();
-        float penaltyPerBuilding = Global.getSettings().getFloat("GrandColonies_UpkeepPenaltyPerBuilding");
-        int limit = Global.getSettings().getInt("GrandColonies_PenaltyThreshold");
+        float penaltyPerBuilding = LunaSettings.getFloat("GrandColonies","GrandColonies_UpkeepPenaltyPerBuilding");
+        int limit = LunaSettings.getInt("GrandColonies","GrandColonies_PenaltyThreshold");
 
         if(amt <= limit) {
             currentPenalty = 0;
@@ -79,6 +80,6 @@ public class CrampedCondition extends BaseMarketConditionPlugin {
 
     @Override
     public boolean showIcon() {
-        return Global.getSettings().getBoolean("GrandColonies_AddPenalty") && currentBuildingsOverLimit > 0;
+        return  LunaSettings.getBoolean("GrandColonies","GrandColonies_AddPenalty") && currentBuildingsOverLimit > 0;
     }
 }

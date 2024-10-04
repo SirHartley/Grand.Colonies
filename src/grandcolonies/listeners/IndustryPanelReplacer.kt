@@ -134,10 +134,7 @@ class IndustryPanelReplacer : EveryFrameScript {
             var withScroller = market.industries.size + market.constructionQueue.items.size > 12;
 
             //Gets the previous scroller if there was one before, this makes sure that you dont have to scroll back down each time the panel updates.f
-            if (element != null && withScroller)
-            {
-                previousOffset = element!!.externalScroller.yOffset
-            }
+            if (element != null && element!!.externalScroller != null && withScroller ) previousOffset = element!!.externalScroller.yOffset
 
             var screenWidth = Global.getSettings().screenWidth
             var screenHeight = Global.getSettings().screenHeight
@@ -147,7 +144,7 @@ class IndustryPanelReplacer : EveryFrameScript {
 
             managementPanel.addComponent(newIndustryPanel)
             //newIndustryPanel!!.position.inTL(90f, 120f)
-            newIndustryPanel!!.position.belowLeft(managementPanel.getChildrenCopy().get(0), 20f)
+            newIndustryPanel!!.position.belowLeft(managementPanel.getChildrenCopy().get(0), if (withScroller) 20f else 35f)
 
             //Create the replacement element that will hold all industry widgets
             element = newIndustryPanel!!.createUIElement(830f, 400f, withScroller)

@@ -7,4 +7,14 @@
     "gameVersion": "0.97a",
     "jars":["jars/GrandColonies.jar"],
     "modPlugin":"grandcolonies.plugins.ModPlugin",
+    "dependencies": [
+        {
+            "id": "lw_lazylib",
+            "name": "LazyLib",
+        },
+        {
+            "id": "lunalib",
+            "name": "LunaLib",
+        },
+    ]
 }

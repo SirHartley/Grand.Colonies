@@ -1,0 +1,9 @@
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
+grandcolonies_header,Gameplay Settings,Header,Gameplay Settings,,,,,
+GrandColonies_AddPenalty,Enable Cramped Colony Penalty,Boolean,TRUE,,Toggles if there is a penalty for having too many buildings on a colony,,,
+GrandColonies_PenaltyThreshold,Penalty threshold,Int,12,,How many buildings are permitted before the penalty kicks in if it's enabled,1,50,
+GrandColonies_UpkeepPenaltyPerBuilding,Upleep penalty,Double,1.1,,"How much does the colony upkeep increase per building over the threshold, compounding: 1.1 is 10%%",1,2,
+,,,,,,,,
+grandcolonies_header1,Legacy Mode,Header,General Settings,,,,,
+GrandColonies_LegacyMode,Legacy Mode,Boolean,FALSE,,Eenables legacy mode - showing pages instead of a scrollbar,,,
+GrandColonies_TogglePageButton,Page Toggle Button,String,q,,Legacy Mode only - which button is used to toggle between pages,,,

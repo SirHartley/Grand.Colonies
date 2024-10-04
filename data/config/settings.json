@@ -1,12 +1,4 @@
 {
-
-  "GrandColonies_LegacyMode": FALSE, #enables legacy mode - showing pages instead of a scrollable panel
-  "GrandColonies_TogglePageButton": "q", #Legacy Mode only - which button is used to toggle between pages
-
-  "GrandColonies_AddPenalty": TRUE, #is there a penalty for having too many buildings on a colony?
-  "GrandColonies_PenaltyThreshold": 12, #how many buildings are permitted before the penalty kicks in
-  "GrandColonies_UpkeepPenaltyPerBuilding": 1.1f, #how much does the colony upkeep increase per building over the threshold (compounding - 1.1 is 10%)
-
   "graphics": {
       "GrandColonies": {
           "00": "graphics/conditions/page00.png",
@@ -20,7 +12,8 @@
           "08": "graphics/conditions/page08.png",
           "09": "graphics/conditions/page09.png",
           "warn": "graphics/conditions/pageWarning.png",
-          "warn_low": "graphics/conditions/pageWarning_low.png"
+          "warn_low": "graphics/conditions/pageWarning_low.png",
+          "icon": "_grandColonies.png",
       },
   },
 }

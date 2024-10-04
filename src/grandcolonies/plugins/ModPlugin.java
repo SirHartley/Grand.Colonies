@@ -9,13 +9,14 @@ import grandcolonies.listeners.IndustryPanelReplacer;
 import grandcolonies.listeners.PageMovingOptionProvider;
 import grandcolonies.listeners.PlayerOpenedMarketListener;
 import grandcolonies.memory.PageMemory;
+import lunalib.lunaSettings.LunaSettings;
 import org.apache.log4j.Logger;
 
 public class ModPlugin extends BaseModPlugin {
 
     public static final Logger log = Global.getLogger(ModPlugin.class);
-    public static final char TARGET_CHAR = Global.getSettings().getString("GrandColonies_TogglePageButton").charAt(0);
-    public static final boolean LEGACY_MODE = Global.getSettings().getBoolean("GrandColonies_LegacyMode");
+    public static final char TARGET_CHAR = LunaSettings.getString("GrandColonies", "GrandColonies_TogglePageButton").charAt(0);
+    public static final boolean LEGACY_MODE = LunaSettings.getBoolean("GrandColonies","GrandColonies_LegacyMode");
     public static final String PAGE_CONDITION_ID = "GrandColonies_pageCond";
     public static final String PAGE_CONDITION_KEY = "$GrandColonies_pageCond";
     public static final String DOCKED_KEY = "$GrandColonies_docked";

@@ -1,3 +1,8 @@
+2.1.a
+Fixed - Can now delete items out of the build queue
+Fixed - Can now re-order items in the build queue as expected
+Note - Both of these were fixed by Float, who worked on the mod on his own. Many thanks!
+
 2.0.f
 Added - LunaSettings
 Adjusted - Scroll bar now only shows up when exceeding 12 buildings

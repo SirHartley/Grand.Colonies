@@ -2,7 +2,7 @@
   <artifact type="jar" build-on-make="true" name="GrandColonies:jar">
     <output-path>$PROJECT_DIR$/jars/</output-path>
     <root id="archive" name="GrandColonies.jar">
-      <element id="module-output" name="GrandColonies" />
+      <element id="module-output" name="Grand.Colonies" />
     </root>
   </artifact>
 </component>

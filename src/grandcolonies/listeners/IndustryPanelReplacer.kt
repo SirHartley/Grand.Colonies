@@ -2,15 +2,16 @@ package grandcolonies.listeners
 
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.econ.Industry
 import com.fs.starfarer.api.campaign.econ.MarketAPI
-import com.fs.starfarer.api.impl.campaign.econ.impl.BaseIndustry
 import com.fs.starfarer.api.ui.CustomPanelAPI
-import com.fs.starfarer.api.ui.LabelAPI
 import com.fs.starfarer.api.ui.TooltipMakerAPI
 import com.fs.starfarer.api.ui.UIComponentAPI
 import com.fs.starfarer.api.ui.UIPanelAPI
 import com.fs.starfarer.campaign.CampaignState
 import com.fs.starfarer.campaign.ui.marketinfo.IndustryListPanel
+import com.fs.starfarer.ui.impl.StandardTooltipV2
+import com.fs.starfarer.ui.impl.StandardTooltipV2Expandable
 import com.fs.state.AppDriver
 import grandcolonies.plugins.ModPlugin
 import org.lazywizard.lazylib.MathUtils
@@ -206,7 +207,6 @@ class IndustryPanelReplacer : EveryFrameScript {
             var build = (industryPanel as UIPanelAPI).getChildrenCopy().find { ReflectionUtils.hasMethodOfName("setEnabled", it) }
             if (build is UIComponentAPI)
             {
-
                 var buttonPanel = Global.getSettings().createCustom(200f, build.position.height, null)
                 managementPanel.addComponent(buttonPanel)
                 var buttonElement = buttonPanel!!.createUIElement(200f, build.position.height, false)
@@ -214,12 +214,14 @@ class IndustryPanelReplacer : EveryFrameScript {
                 buttonPanel.addUIElement(buttonElement)
 
                 buttonElement.addCustom(build, 0f)
+                ReflectionUtils.invoke("setEnabled", build, true)
+
                 lastPanel = buttonPanel
             }
 
             //Re-Adds both paragraphs to the right of the Build button
             var first = true
-            for (child in (industryPanel as UIPanelAPI).getChildrenCopy().filter { ReflectionUtils.hasMethodOfName("createMaxIndustriesLabel", it) })
+            for (child in industryPanel.getChildrenCopy().filter { ReflectionUtils.hasMethodOfName("createMaxIndustriesLabel", it) })
             {
                 var paragraphPanel = Global.getSettings().createCustom(child.position.width, child.position.height, null)
                 managementPanel.addComponent(paragraphPanel)
@@ -228,22 +230,18 @@ class IndustryPanelReplacer : EveryFrameScript {
                 {
                     first = false
                     paragraphPanel.position.rightOfMid(lastPanel, 200f )
-
                 }
                 else
                 {
                     paragraphPanel.position.rightOfMid(lastPanel, 50f)
                 }
                 paragraphPanel.addUIElement(buttonElement)
-
                 lastPanel = paragraphPanel
-
                 buttonElement.addCustom(child, 0f)
             }
 
             //Finishes setting up the scroller, has to be called last as anything added to a scroller needs to be done before this call.
             newIndustryPanel!!.addUIElement(element)
-
 
             //Makes the scroller move up/down when a row has been added or removed.
             if (withScroller){
@@ -271,6 +269,8 @@ class IndustryPanelReplacer : EveryFrameScript {
             //Set the scroller position to the value aqquired earlier
             // element!!.externalScroller.yOffset = MathUtils.clamp(previousOffset, 0f, element!!.position.height)
 
+            // Set the widgets of the original industry panel to our new widgets, as certain actions check for equality in the old widgets list (e.g. swap, remove)
+            ReflectionUtils.set("widgets", industryPanel, widgets)
         }
 
         if (managementPanel == null)
@@ -284,113 +284,79 @@ class IndustryPanelReplacer : EveryFrameScript {
 
     }
 
-
-
-    //Gets all Widgets
-    //This is done by stealing them from the original Industry Panel.
-
-    //However the industry panel is limited by the fact that it will only return 12 widgets
-    //To get around this, we set all industries that arent Hidden as Hidden, then one by one enable a widget, reload the panel with "panel.sizeChanged()", add the widget it generates to a list,
-    //then hide the industry again and wait for the next one.
-
-    //Could be made simpler by just instantiating the widget class myself.
-
-    //Same principal for anything on the Construction List.
-
+    // Recreates and returns the list of all industry and construction queue widgets,
+    // getting around the 12 widget limit in vanilla
     private fun getAllWidgets(market: MarketAPI, panel: UIPanelAPI) : List<UIComponentAPI>
     {
+        val origWidgets = ReflectionUtils.invoke("getWidgets", panel) as? List<*>
+        if (origWidgets.isNullOrEmpty()) return ArrayList()
 
-        var industries = market.industries.filter { !it.isHidden }.distinctBy { it.spec.id }.sortedBy { it.spec.order }
-        industries.forEach { it.isHidden = true }
+        val firstWidget = origWidgets.first() as UIComponentAPI
+        val widgetClass = firstWidget::class.java
 
-        //var widgets: MutableMap<String, UIComponentAPI> = LinkedHashMap()
-        var widgets = ArrayList<UIPanelAPI>()
-        ReflectionUtils.invoke("sizeChanged", panel, panel.position.width, panel.position.height)
-        //panel.sizeChanged(panel.position.width, panel.position.height)
+        val widgetWidth = firstWidget.position.width
+        val widgetHeight = firstWidget.position.height
 
-        var construction = ArrayList(market.constructionQueue.items)
-        market.constructionQueue.items.clear()
+        val industries = market.industries.filter { !it.isHidden }.distinctBy { it.spec.id }.sortedBy { it.spec.order }
+        val constructionQueue = market.constructionQueue.items
 
-        for (industry in industries)
-        {
-            industry.isHidden = false
-            ReflectionUtils.invoke("sizeChanged", panel, panel.position.width, panel.position.height)
-            // panel.sizeChanged(panel.position.width, panel.position.height)
-            widgets.addAll(ReflectionUtils.invoke("getWidgets", panel) as List<UIPanelAPI>)
-            // widgets.addAll(panel.widgets)
-            industry.isHidden = true
-        }
+        // Seems sketchy, but getInterfaces always returns interfaces in the order they're declared in the code
+        val addTooltipParamClass = widgetClass.superclass.superclass.interfaces[3]
 
-        for (entry in construction)
-        {
-            market.constructionQueue.items.add(entry)
-            ReflectionUtils.invoke("sizeChanged", panel, panel.position.width, panel.position.height)
-            //panel.sizeChanged(panel.position.width, panel.position.height)
-            widgets.addAll(ReflectionUtils.invoke("getWidgets", panel) as List<UIPanelAPI>)
-            //widgets.addAll(panel.widgets)
-            market.constructionQueue.items.remove(entry)
-        }
-
-        var filteredWidgets = ArrayList<UIPanelAPI>()
-
-        var IDS = industries.map { it.spec.id } + construction.map { it.id }
-
-        for (widget in widgets)
-        {
-            var widgetName = getWidgetIndustry(widget, IDS)
-            var contains = false
-            for (filt in filteredWidgets)
-            {
-                if (widgetName != "" && getWidgetIndustry(filt, IDS) == widgetName)
-                {
-                    contains = true
-                }
-            }
-
-            if (!contains)
-            {
-                filteredWidgets.add(widget)
-            }
-        }
-
-        market.constructionQueue.items.addAll(construction)
-        industries.forEach { it.isHidden = false }
-
-        return filteredWidgets
-    }
-    fun getWidgetIndustry(widget: UIPanelAPI, industries: List<String>) : String
-    {
-        var fakeMarket = Global.getFactory().createMarket("fakeMarket", "Fake Market", 3)
-        for (child in widget.getChildrenCopy())
-        {
-            // if (child is LabelAPI && industries.map { Global.getSettings().getIndustrySpec(it).name }.contains(child.text.trim()) )
-            if (child is LabelAPI) {
-                for (industry in industries.map { Global.getSettings().getIndustrySpec(it) })
-                {
-                    var plugin = Global.getSettings().scriptClassLoader.loadClass(industry.pluginClass).newInstance() as BaseIndustry?
-
-                    var name = industry.name
-                    if (plugin != null) {
-                        plugin.init(industry.id, fakeMarket)
-                        name = plugin.currentName
+        return industries
+            // Make the widgets for each industry
+            .map {
+                ReflectionUtils.instantiateExact(
+                    widgetClass,
+                    arrayOf(MarketAPI::class.java, Industry::class.java, IndustryListPanel::class.java),
+                    market, it, panel)?.apply {
+                        ReflectionUtils.invokeStatic(
+                            "addTooltipRight",
+                            StandardTooltipV2Expandable::class.java,
+                            Void.TYPE,
+                            arrayOf(addTooltipParamClass, StandardTooltipV2::class.java),
+                            this as UIComponentAPI,
+                            ReflectionUtils.invokeStatic(
+                                "createIndustryTooltip",
+                                this::class.java,
+                                StandardTooltipV2::class.java,
+                                arrayOf(Industry.IndustryTooltipMode::class.java, Industry::class.java),
+                                Industry.IndustryTooltipMode.NORMAL, it) as StandardTooltipV2
+                        )
+                        position.setSize(widgetWidth, widgetHeight)
                     }
-
-                    if (name.equals(child.text.trim()))
-                    {
-                        return child.text
+                as UIComponentAPI }
+            // Make the widgets for each construction item (queued industry)
+            .plus (
+                constructionQueue.mapIndexed { i, it ->
+                    val industry = market.instantiateIndustry(it.id)
+                    ReflectionUtils.instantiateExact(
+                        widgetClass,
+                        arrayOf(MarketAPI::class.java, Industry::class.java, IndustryListPanel::class.java, Int::class.java),
+                        market, industry, panel, i)?.apply {
+                            ReflectionUtils.invokeStatic(
+                                "addTooltipRight",
+                                StandardTooltipV2Expandable::class.java,
+                                Void.TYPE,
+                                arrayOf(addTooltipParamClass, StandardTooltipV2::class.java),
+                                this as UIComponentAPI,
+                                ReflectionUtils.invokeStatic(
+                                    "createIndustryTooltip",
+                                    this::class.java,
+                                    StandardTooltipV2::class.java,
+                                    arrayOf(Industry.IndustryTooltipMode::class.java, Industry::class.java),
+                                    Industry.IndustryTooltipMode.QUEUED, industry) as StandardTooltipV2
+                            )
+                            position.setSize(widgetWidth, widgetHeight)
+                        } as UIComponentAPI
                     }
-                }
-            }
-        }
-        return ""
+            )
     }
 
     //Extends the UI API by adding the required method to get the child objects of a panel, only when used within this class.
     private fun UIPanelAPI.getChildrenCopy() : List<UIComponentAPI> {
         return ReflectionUtils.invoke("getChildrenCopy", this) as List<UIComponentAPI>
     }
-
-
 }
 
 

@@ -14,6 +14,7 @@ object ReflectionUtils {
     private val methodClass = Class.forName("java.lang.reflect.Method", false, Class::class.java.classLoader)
     private val getMethodNameHandle = MethodHandles.lookup().findVirtual(methodClass, "getName", MethodType.methodType(String::class.java))
     private val invokeMethodHandle = MethodHandles.lookup().findVirtual(methodClass, "invoke", MethodType.methodType(Any::class.java, Any::class.java, Array<Any>::class.java))
+    private val lookup = MethodHandles.lookup()
 
     fun set(fieldName: String, instanceToModify: Any, newValue: Any?)
     {
@@ -53,6 +54,15 @@ object ReflectionUtils {
         return instancesOfFields.any { getFieldNameHandle.invoke(it) == name }
     }
 
+    fun instantiateExact(clazz: Class<*>, pType:Array<Class<*>>, vararg arguments: Any?) : Any?
+    {
+        val methodType = MethodType.methodType(Void.TYPE, pType)
+        val constructorHandle = MethodHandles.lookup().findConstructor(clazz, methodType)
+        val instance = constructorHandle.invokeWithArguments(arguments.toList())
+
+        return instance
+    }
+
     fun instantiate(clazz: Class<*>, vararg arguments: Any?) : Any?
     {
         val args = arguments.map { it!!::class.javaPrimitiveType ?: it!!::class.java }
@@ -62,6 +72,33 @@ object ReflectionUtils {
         val instance = constructorHandle.invokeWithArguments(arguments.toList())
 
         return instance
+    }
+
+    fun invokeStatic(methodName: String, cls: Class<*>, rType: Class<*>, pType: Array<Class<*>>, vararg arguments: Any?) : Any?
+    {
+        val methodType = MethodType.methodType(rType, pType)
+        val method = lookup.findStatic(cls, methodName, methodType)
+        return method.invokeWithArguments(*arguments)
+    }
+
+    fun invokeExact(methodName: String, instance: Any, pType: Array<Class<*>>, vararg arguments : Any?, declared: Boolean = false) : Any?
+    {
+        val methodType = MethodType.methodType(Void.TYPE, pType)
+        var method : Any? = null
+        if (!declared) {
+            var cls = instance.javaClass
+            while (cls != Object::class.java) {
+                try {
+                    method = cls.getMethod(methodName, *pType)
+                    break
+                } catch (e: NoSuchMethodException) {
+                    cls = cls.superclass
+                }
+            }
+        } else {
+            instance.javaClass.getDeclaredMethod(methodName, *methodType.parameterArray())
+        }
+        return invokeMethodHandle.invoke(method, instance, arguments)
     }
 
     fun invoke(methodName: String, instance: Any, vararg arguments: Any?, declared: Boolean = false) : Any?

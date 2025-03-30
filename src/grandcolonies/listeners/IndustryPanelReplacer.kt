@@ -214,7 +214,7 @@ class IndustryPanelReplacer : EveryFrameScript {
                 buttonPanel.addUIElement(buttonElement)
 
                 buttonElement.addCustom(build, 0f)
-                ReflectionUtils.invoke("setEnabled", build, true)
+                ReflectionUtils.invoke("setEnabled", build, market.isPlayerOwned)
 
                 lastPanel = buttonPanel
             }

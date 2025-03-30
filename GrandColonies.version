@@ -6,6 +6,12 @@
     {
         "major":2,
         "minor":1,
-        "patch":"a"
+        "patch":"b"
     },
+
+    #Link towards a direct download, fetched from the online version file
+                "directDownloadURL":"https://github.com/SirHartley/Grand.Colonies/releases/download/2.1.b/Grand.Colonies2.1.b.zip",
+
+                #Link towards a directly accessible text file, which can be used to display a changelog ingame, is fetched from the online version file.
+                "changelogURL":"https://raw.githubusercontent.com/SirHartley/Grand.Colonies/refs/heads/master/Changelog",
 }

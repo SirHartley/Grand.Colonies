@@ -1,0 +1,141 @@
+name: Release
+
+# manual only, actions minutes cost money: no version packages a preview, a version publishes that release
+# and tags the packaged commit, so no tag has to be pushed first; a run on an existing version tag publishes it
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, such as 2.1.c. Leave empty for a preview package."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+      release: ${{ steps.package.outputs.release }}
+    steps:
+      # pin actions by commit sha, version in the trailing comment
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Check release tooling
+        run: |
+          mkdir -p out/release-tools
+          javac --release 17 -encoding UTF-8 -d out/release-tools \
+            src/grandcolonies/tools/ReleaseBuild.java \
+            src/grandcolonies/tools/ReleaseBuildChecks.java
+          java -cp out/release-tools grandcolonies.tools.ReleaseBuildChecks
+      # kotlin 2.1.20 compiler from maven central, pinned by sha256; the game libraries come from lib/
+      - name: Download Kotlin compiler
+        run: |
+          mkdir -p out/kotlin
+          cd out/kotlin
+          while read -r sum path; do
+            file="${path##*/}"
+            curl -fsSL --retry 3 -o "$file" "https://repo1.maven.org/maven2/$path"
+            echo "$sum  $file" | sha256sum -c -
+          done <<'EOF'
+          c54a00718c8c0e3ee858bf42771c7f401c5e3c1738861e18e9536371042fa1b3 org/jetbrains/kotlin/kotlin-compiler-embeddable/2.1.20/kotlin-compiler-embeddable-2.1.20.jar
+          1bcc74e8ce84e2c25eaafde10f1248349cce3062b6e36978cbeec610db1e930a org/jetbrains/kotlin/kotlin-stdlib/2.1.20/kotlin-stdlib-2.1.20.jar
+          ae4397fbb3aa2a1ada09290e753bba99a4114548977c3115526b9958f4cb1a04 org/jetbrains/kotlin/kotlin-script-runtime/2.1.20/kotlin-script-runtime-2.1.20.jar
+          d9e83df1d847a201ba3c016a786ced091be9503997d09f6a9cf1796ee489f374 org/jetbrains/kotlin/kotlin-daemon-embeddable/2.1.20/kotlin-daemon-embeddable-2.1.20.jar
+          3277ac102ae17aad10a55abec75ff5696c8d109790396434b496e75087854203 org/jetbrains/kotlin/kotlin-reflect/1.6.10/kotlin-reflect-1.6.10.jar
+          c5fd725bffab51846bf3c77db1383c60aaaebfe1b7fe2f00d23fe1b7df0a439d org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
+          ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478 org/jetbrains/annotations/13.0/annotations-13.0.jar
+          9860906a1937490bf5f3b06d2f0e10ef451e65b95b269f22daf68a3d1f5065c5 org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar
+          EOF
+      - name: Build release jar
+        run: java -cp out/release-tools grandcolonies.tools.ReleaseBuild build out/kotlin
+      - name: Package
+        id: package
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            if [ -n "$VERSION" ] && [ "$VERSION" != "$REF_NAME" ]; then
+              echo "::error::Version $VERSION does not match tag $REF_NAME."
+              exit 1
+            fi
+            VERSION="$REF_NAME"
+          fi
+          args=()
+          if [ -n "$VERSION" ]; then args+=("$VERSION"); fi
+          java -cp out/release-tools grandcolonies.tools.ReleaseBuild package "${args[@]}"
+          echo "version=$(cat out/release/version.txt)" >> "$GITHUB_OUTPUT"
+          if [ -n "$VERSION" ]; then echo "release=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Grand.Colonies-${{ steps.package.outputs.version }}
+          path: |
+            out/release/Grand.Colonies-[0-9]*.zip
+            out/release/release-notes.md
+            out/release/GrandColonies.version
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: needs.package.outputs.release == 'true'
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Download checked package and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          VERSION: ${{ needs.package.outputs.version }}
+          REF_TYPE: ${{ github.ref_type }}
+          SHA: ${{ github.sha }}
+        run: |
+          gh run download "$RUN_ID" --repo "$GH_REPO" --name "Grand.Colonies-$VERSION" --dir release
+          if gh release view "$VERSION" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "::error::Release $VERSION already exists; published releases are never overwritten."
+            exit 1
+          fi
+          # from a branch the release creates the tag on the packaged commit; an existing tag would point elsewhere
+          if [ "$REF_TYPE" = tag ]; then
+            target=(--verify-tag)
+          elif gh api "repos/$GH_REPO/git/ref/tags/$VERSION" >/dev/null 2>&1; then
+            echo "::error::Tag $VERSION already exists; run the workflow on that tag instead."
+            exit 1
+          else
+            target=(--target "$SHA")
+          fi
+          gh release create "$VERSION" "release/Grand.Colonies-$VERSION.zip" \
+            --repo "$GH_REPO" "${target[@]}" --title "Grand.Colonies $VERSION" \
+            --notes-file release/release-notes.md
+      # master's version file is the online one, so only point it at a release that exists
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          path: master
+      - name: Point the online version file at this release
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          cp release/GrandColonies.version master/GrandColonies.version
+          cd master
+          if git diff --quiet -- GrandColonies.version; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "update version file to $VERSION" -- GrandColonies.version
+          git push origin HEAD:master

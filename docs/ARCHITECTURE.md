@@ -47,6 +47,7 @@ LunaLib mod id `GrandColonies`; `data/config/LunaSettings.csv` owns the ids, def
 
 | Field | Type, default | Read by |
 |---|---|---|
+| `GrandColonies_EditEverything` | Boolean, off | `IndustryPanelReplacer.advance` (build button `setEnabled`), every paused frame |
 | `GrandColonies_AddPenalty` | Boolean, on | `CrampedCondition.apply` and `showIcon`, every call |
 | `GrandColonies_PenaltyThreshold` | Int, 12 (1 to 50) | `CrampedCondition.applyOverCapPenalty`, every apply |
 | `GrandColonies_UpkeepPenaltyPerBuilding` | Double, 1.1 (1 to 2) | `CrampedCondition.applyOverCapPenalty`, every apply |

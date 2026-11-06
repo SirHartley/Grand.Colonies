@@ -16,6 +16,7 @@ import com.fs.state.AppDriver
 import grandcolonies.plugins.ModPlugin
 import org.lazywizard.lazylib.MathUtils
 import grandcolonies.helper.ReflectionUtils
+import lunalib.lunaSettings.LunaSettings
 
 class IndustryPanelReplacer : EveryFrameScript {
 
@@ -214,7 +215,8 @@ class IndustryPanelReplacer : EveryFrameScript {
                 buttonPanel.addUIElement(buttonElement)
 
                 buttonElement.addCustom(build, 0f)
-                ReflectionUtils.invoke("setEnabled", build, market.isPlayerOwned)
+                val editEverywhere = LunaSettings.getBoolean("GrandColonies", "GrandColonies_EditEverything") == true
+                ReflectionUtils.invoke("setEnabled", build, editEverywhere || market.isPlayerOwned)
 
                 lastPanel = buttonPanel
             }

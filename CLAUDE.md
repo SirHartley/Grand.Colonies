@@ -1,6 +1,6 @@
 # Grand.Colonies
 
-Starsector mod (game `0.98a`) by SirHartley and Lukas04 that lifts the 12 building limit of a colony's industry panel. The default mode replaces the panel with a scrolling list and adds the Cramped Infrastructure upkeep penalty; legacy mode splits the buildings into pages toggled with a key.
+Starsector mod (game `0.98.5a`) by SirHartley and Lukas04 that lifts the 12 building limit of a colony's industry panel. The default mode replaces the panel with a scrolling list and adds the Cramped Infrastructure upkeep penalty; legacy mode splits the buildings into pages toggled with a key.
 
 ## Required workflow
 

@@ -1,6 +1,6 @@
 # Architecture
 
-Technical routing for the current implementation, checked against game `0.98a-RC8`, LazyLib 3.0.0 (Kotlin 2.1.20) and LunaLib 2.0.1. Code paths below are relative to `src/grandcolonies/`; data paths are repository-relative. Search the named owner before adding another implementation.
+Technical routing for the current implementation, checked against game `0.98.5a-RC4`, LazyLib 3.0.0 (Kotlin 2.1.20) and LunaLib 2.0.1. Code paths below are relative to `src/grandcolonies/`; data paths are repository-relative. Search the named owner before adding another implementation.
 
 | Reference | Scope |
 |---|---|
@@ -122,7 +122,7 @@ Use `rg --files src/grandcolonies` for the complete inventory.
 
 - Vanilla `IndustryListPanel.sizeChanged` lays out at most 12 widgets (4 columns, 3 rows) from the non-hidden industries sorted by `getSpec().getOrder()`, then the construction queue; the rest are never shown. `IndustryPanelReplacer.getAllWidgets` rebuilds the full list the same way (plus `distinctBy` spec id).
 - No API callback covers the management panel being built or rebuilt: `CoreUITabListener.reportAboutToOpenCoreTab` only reports a tab opening, and the panel is recreated on economy updates, builds and queue changes. So `IndustryPanelReplacer` checks every frame while the sector is paused (`runWhilePaused`), and returns at once while unpaused. In legacy mode it also returns while a dialog shows or no core tab is open, so docked colonies keep vanilla's 12 slot panel with pages and remote colonies get the scroller.
-- Reflection chain (0.98a-RC8): `CampaignState` (`AppDriver.getInstance().getCurrentState()`) -> `getEncounterDialog().getCoreUI()` or `getCore()` -> `getCurrentTab()` -> child with `getOutpostPanelParams` -> child with `showOverview` -> child with `recreateWithEconUpdate` (the management panel) -> child that is an `IndustryListPanel`. Fields `market` and `widgets` on `IndustryListPanel`. The build button is the panel child with `setEnabled`, the two labels the children with `createMaxIndustriesLabel`.
+- Reflection chain (0.98.5a-RC4): `CampaignState` (`AppDriver.getInstance().getCurrentState()`) -> `getEncounterDialog().getCoreUI()` or `getCore()` -> `getCurrentTab()` -> child with `getOutpostPanelParams` -> child with `showOverview` -> child with `recreateWithEconUpdate` (the management panel) -> child that is an `IndustryListPanel`. Fields `market` and `widgets` on `IndustryListPanel`. The build button is the panel child with `setEnabled`, the two labels the children with `createMaxIndustriesLabel`.
 - Widgets are created with the vanilla widget class's constructors `(MarketAPI, Industry, IndustryListPanel)` and `(MarketAPI, Industry, IndustryListPanel, int)`; tooltips through `StandardTooltipV2Expandable.addTooltipRight` with the parameter type `widgetClass.superclass.superclass.interfaces[3]`. That index depends on the order the game class declares its interfaces and breaks silently on a reshuffle.
 - `widgets` on the vanilla panel is set to the new widget list: queue removal and swapping compare against that list.
 - The code imports `CampaignState`, `IndustryListPanel`, `StandardTooltipV2`, `StandardTooltipV2Expandable` (`starfarer_obf.jar`) and `AppDriver` (`fs.common_obf.jar`). These are not obfuscated names, but they are internal classes that a game update can change.

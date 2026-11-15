@@ -8,10 +8,17 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="LazyLib-Kotlin" level="application" />
-    <orderEntry type="library" name="commons-compiler-jdk" level="application" />
     <orderEntry type="library" name="LunaLib" level="application" />
     <orderEntry type="library" name="LazyLib" level="application" />
-    <orderEntry type="library" name="lib" level="application" />
-    <orderEntry type="library" name="Kotlin-Runtime" level="application" />
+    <orderEntry type="library" name="commons-compiler" level="application" />
+    <orderEntry type="module-library">
+      <library name="Kotlin-Runtime">
+        <CLASSES>
+          <root url="jar://C:/Modding/Libs/LazyLib/jars/internal/Kotlin-Runtime.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

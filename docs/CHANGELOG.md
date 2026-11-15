@@ -25,7 +25,7 @@ Fixed - Add Industry button now functions correctly
 ```
 
 - Version heading: the version alone on its line, optionally followed by ` - UNRELEASED`. No `v` prefix, no date, no Markdown. The release tooling reads these headings, so keep them in this form.
-- If no unreleased section exists, add one above the newest version. The next one is `2.1.c` unless the user picks another; do not invent a new version per commit.
+- If no unreleased section exists, add one above the newest version. The next one is `2.1.d` unless the user picks another; do not invent a new version per commit.
 - Entries: one change per line, starting `Added - `, `Adjusted - `, `Fixed - ` or `Removed - `, in that order.
 - A `Note - ` line directly below an entry explains a limit or something the player must do.
 - Older sections prefix entries with the mode (`Fixed - Legacy - Crash when abandoning a colony`, `Added - Default - ...`). Use the same `Legacy - ` or `Default - ` prefix when a change only affects one mode.

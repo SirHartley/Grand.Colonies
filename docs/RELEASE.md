@@ -11,7 +11,7 @@ How Grand.Colonies is built, packaged and published. Nothing here runs unless a 
 | Version file | `GrandColonies.version` | Online Version Checker file on `master` (forum thread `20986`), registered in `data/config/version/version_files.csv`; stamped at packaging, committed back after a release |
 | Release builder | `src/grandcolonies/tools/ReleaseBuild.java` | `build` and `package`, run with `java <file>` |
 | Builder checks | `src/grandcolonies/tools/ReleaseBuildChecks.java` | Headless checks of changelog parsing, stamping, file filtering and asset references |
-| Build libraries | `lib/` | Game jars from `0.98a-RC8` (`starfarer.api.jar`, `starfarer_obf.jar`, `fs.common_obf.jar`, `lwjgl.jar`, `lwjgl_util.jar`, `json.jar`, `log4j-1.2.9.jar`), `LazyLib.jar` and `Kotlin-Runtime.jar` (LazyLib 3.0.0, Kotlin 2.1.20) and `LunaLib.jar` (2.0.1), copied from Industrial.Evolution's `lib/` |
+| Build libraries | `lib/` | Game jars from `0.98.5a-RC6` (`starfarer.api.jar`, `starfarer_obf.jar`, `fs.common_obf.jar`, `lwjgl.jar`, `lwjgl_util.jar`, `json.jar`, `log4j-1.2.9.jar`; the last four are unchanged since `0.98a-RC8`), `LazyLib.jar` and `Kotlin-Runtime.jar` (LazyLib 3.0.0, Kotlin 2.1.20) and `LunaLib.jar` (2.0.1); the library jars come from Industrial.Evolution's `lib/` |
 | Kotlin compiler | not in the repository | Kotlin `2.1.20`, the version of `lib/Kotlin-Runtime.jar`. The workflow downloads it; locally pass its folder to `build` |
 | Release jar | `jars/release/GrandColonies.jar` | Built by `build`, gitignored, runtime classes only; shipped as `jars/GrandColonies.jar` |
 | Release workflow | `.github/workflows/release.yml` | Manual only: preview without a version, publish with one |
